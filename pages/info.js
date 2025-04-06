@@ -8,11 +8,10 @@ export default function Info() {
         password: "",
         phone: "",
     });
-    const [isEditing, setIsEditing] = useState(false); // Track if the user is editing
-    const router = useRouter(); // Initialize router
+    const [isEditing, setIsEditing] = useState(false); 
+    const router = useRouter();
 
     useEffect(() => {
-        // Load user information from localStorage if available
         const storedUserInfo = JSON.parse(localStorage.getItem("userInfo"));
         if (storedUserInfo) {
             setUserInfo(storedUserInfo);

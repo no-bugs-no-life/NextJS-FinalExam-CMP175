@@ -1,23 +1,49 @@
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
+import useAuthStore from '@/store/useAuthStore';
 
 const Navbar = () => {
-    const [darkMode, setDarkMode] = useState(false);
+    const router = useRouter();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const { isAuthenticated, user, logout } = useAuthStore();
 
-    const toggleDarkMode = () => {
-        setDarkMode(!darkMode);
+    const handleLogout = () => {
+        logout();
+        router.push('/dang-nhap');
     };
 
     const toggleMenu = () => {
         setIsMenuOpen(!isMenuOpen);
     };
 
+    const renderNavLinks = () => (
+        <>
+            <Link href="/" className="hover:text-gray-600">Trang chủ</Link>
+            <Link href="/bai-viet" className="hover:text-gray-600">Bài viết</Link>
+            {isAuthenticated ? (
+                <>
+                    <Link href="/trang-ca-nhan" className="hover:text-gray-600">
+                        {user?.firstName || 'Trang cá nhân'}
+                    </Link>
+                    <button onClick={handleLogout} className="hover:text-red-600">
+                        Đăng xuất
+                    </button>
+                </>
+            ) : (
+                <>
+                    <Link href="/dang-nhap" className="hover:text-gray-600">Đăng nhập</Link>
+                    <Link href="/dang-ky" className="hover:text-gray-600">Đăng ký</Link>
+                </>
+            )}
+        </>
+    );
+
     return (
         <nav className="py-4 border-b border-gray-200">
             <div className="container mx-auto px-6">
                 <div className="flex items-center justify-between">
-                    <div className="text-xl font-bold">DevNews</div>
+                    <Link href="/" className="text-xl font-bold">DevNews</Link>
 
                     {/* Mobile menu button */}
                     <button
@@ -25,7 +51,7 @@ const Navbar = () => {
                         onClick={toggleMenu}
                         aria-label="Toggle menu"
                     >
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             {isMenuOpen ? (
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             ) : (
@@ -37,49 +63,24 @@ const Navbar = () => {
                     {/* Desktop navigation */}
                     <div className="hidden md:flex items-center space-x-8">
                         <div className="flex space-x-8">
-                            <Link href="/blog" className="hover:text-gray-600">Blog</Link>
-                            <Link href="/projects" className="hover:text-gray-600">Projects</Link>
-                            <Link href="/about" className="hover:text-gray-600">About</Link>
-                            <Link href="/newsletter" className="hover:text-gray-600">Newsletter</Link>
+                            {renderNavLinks()}
                         </div>
-                        <button
-                            onClick={toggleDarkMode}
-                            className="w-12 h-6 rounded-full bg-gray-200 flex items-center transition duration-300 focus:outline-none shadow"
-                        >
-                            <div className={`w-6 h-6 rounded-full transform transition-transform duration-300 flex items-center justify-center ${darkMode ? 'translate-x-6 bg-white' : 'bg-white'}`}>
-                                {darkMode ? '🌙' : '☀️'}
-                            </div>
-                        </button>
                     </div>
                 </div>
 
-                {/* Mobile navigation - Light theme */}
+                {/* Mobile navigation */}
                 {isMenuOpen && (
                     <div className="md:hidden mt-4 py-6 bg-white fixed inset-0 z-50 flex flex-col items-center justify-center">
                         <div className="flex flex-col space-y-6 text-center">
-                            <Link href="/blog" className="text-lg hover:text-gray-600">Blog</Link>
-                            <Link href="/projects" className="text-lg hover:text-gray-600">Projects</Link>
-                            <Link href="/about" className="text-lg hover:text-gray-600">About</Link>
-                            <Link href="/newsletter" className="text-lg hover:text-gray-600">Newsletter</Link>
-                        </div>
-                        <div className="mt-8 flex items-center">
-                            <button 
-                                onClick={toggleDarkMode}
-                                className="w-16 h-8 rounded-full bg-gray-200 flex items-center transition duration-300 focus:outline-none shadow"
-                            >
-                                <div className={`w-8 h-8 rounded-full transform transition-transform duration-300 flex items-center justify-center ${darkMode ? 'translate-x-8 bg-white' : 'bg-white'}`}>
-                                    {darkMode ? '🌙' : '☀️'}
-                                </div>
-                            </button>
+                            {renderNavLinks()}
                         </div>
                         
-                        {/* Close button at the bottom */}
                         <button 
                             onClick={toggleMenu} 
                             className="absolute bottom-10 text-gray-800 focus:outline-none"
                             aria-label="Close menu"
                         >
-                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                         </button>
