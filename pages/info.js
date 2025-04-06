@@ -1,114 +1,146 @@
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/router"; // Import useRouter for navigation
 
 export default function Info() {
     const [userInfo, setUserInfo] = useState({
-        name: "",
-        email: "",
-        password: "",
+        username: "",
         phone: "",
+        email: "",
+        name: "",
+        password: "", // Add password to user info
     });
-    const [isEditing, setIsEditing] = useState(false); // Track if the user is editing
-    const router = useRouter(); // Initialize router
+    const [isChangingPassword, setIsChangingPassword] = useState(false); // Toggle change password mode
+    const [passwordForm, setPasswordForm] = useState({
+        currentPassword: "",
+        newPassword: "",
+        confirmNewPassword: "",
+    });
+    const [error, setError] = useState(""); // Error message state
 
     useEffect(() => {
-        // Load user information from localStorage if available
-        const storedUserInfo = JSON.parse(localStorage.getItem("userInfo"));
-        if (storedUserInfo) {
-            setUserInfo(storedUserInfo);
+        // Retrieve user information from localStorage
+        const storedUser = JSON.parse(localStorage.getItem("userInfo"));
+        if (storedUser) {
+            setUserInfo(storedUser);
         }
     }, []);
 
-    const handleInputChange = (e) => {
+    const handlePasswordChange = (e) => {
         const { name, value } = e.target;
-        setUserInfo((prev) => ({ ...prev, [name]: value }));
+        setPasswordForm((prev) => ({ ...prev, [name]: value }));
+        setError(""); // Clear error message when user types
     };
 
-    const handleSaveInfo = () => {
-        if (!userInfo.name || !userInfo.email || !userInfo.password || !userInfo.phone) {
-            alert("Vui lòng điền đầy đủ thông tin!");
+    const handleChangePassword = () => {
+        const { currentPassword, newPassword, confirmNewPassword } = passwordForm;
+
+        // Validate input fields
+        if (!currentPassword || !newPassword || !confirmNewPassword) {
+            setError("Vui lòng điền đầy đủ thông tin!");
             return;
         }
 
-        // Save user information to localStorage
-        localStorage.setItem("userInfo", JSON.stringify(userInfo));
-        alert("Thông tin đã được lưu!");
-        setIsEditing(false); // Disable editing mode after saving
-    };
+        // Check if current password matches
+        if (currentPassword !== userInfo.password) {
+            setError("Mật khẩu hiện tại không đúng!");
+            return;
+        }
 
-    const enableEditing = () => {
-        setIsEditing(true); // Enable editing mode
-    };
+        // Check if new password matches confirmation
+        if (newPassword !== confirmNewPassword) {
+            setError("Mật khẩu mới và xác nhận mật khẩu không khớp!");
+            return;
+        }
 
-    const goToArticles = () => {
-        router.push("/bai-bao"); // Redirect to the bai-bao.js page
+        // Update password in user info
+        setUserInfo((prev) => ({ ...prev, password: newPassword }));
+        localStorage.setItem("userInfo", JSON.stringify({ ...userInfo, password: newPassword }));
+        alert("Mật khẩu đã được thay đổi!");
+        setIsChangingPassword(false); // Exit change password mode
+        setPasswordForm({ currentPassword: "", newPassword: "", confirmNewPassword: "" }); // Reset form
     };
 
     return (
         <div className="px-6 py-8">
-            <h1 className="text-3xl font-bold mb-6">Thông Tin Người Dùng</h1>
+            <h1 className="text-3xl font-bold mb-6">Thông Tin Cá Nhân</h1>
             <form>
                 <input
                     type="text"
                     name="name"
-                    placeholder="Tên"
+                    placeholder="Họ và Tên"
                     value={userInfo.name}
-                    onChange={handleInputChange}
-                    className="p-2 mb-2 w-full border border-gray-300 rounded"
-                    disabled={!isEditing} // Disable input if not editing
+                    className="p-2 mb-2 w-full border border-gray-300 rounded bg-gray-100"
+                    disabled // Make this field uneditable
+                />
+                <input
+                    type="text"
+                    name="phone"
+                    placeholder="Số Điện Thoại"
+                    value={userInfo.phone}
+                    className="p-2 mb-2 w-full border border-gray-300 rounded bg-gray-100"
+                    disabled // Make this field uneditable
                 />
                 <input
                     type="email"
                     name="email"
                     placeholder="Email"
                     value={userInfo.email}
-                    onChange={handleInputChange}
-                    className="p-2 mb-2 w-full border border-gray-300 rounded"
-                    disabled={!isEditing} // Disable input if not editing
-                />
-                <input
-                    type="password"
-                    name="password"
-                    placeholder="Mật khẩu"
-                    value={userInfo.password}
-                    onChange={handleInputChange}
-                    className="p-2 mb-2 w-full border border-gray-300 rounded"
-                    disabled={!isEditing} // Disable input if not editing
+                    className="p-2 mb-2 w-full border border-gray-300 rounded bg-gray-100"
+                    disabled // Make this field uneditable
                 />
                 <input
                     type="text"
-                    name="phone"
-                    placeholder="Số điện thoại"
-                    value={userInfo.phone}
-                    onChange={handleInputChange}
-                    className="p-2 mb-2 w-full border border-gray-300 rounded"
-                    disabled={!isEditing} // Disable input if not editing
+                    name="username"
+                    placeholder="Tên Đăng Nhập"
+                    value={userInfo.username}
+                    className="p-2 mb-2 w-full border border-gray-300 rounded bg-gray-100"
+                    disabled // Make this field uneditable
                 />
-                {isEditing ? (
-                    <button
-                        type="button"
-                        onClick={handleSaveInfo}
-                        className="px-6 py-3 bg-green-500 text-white rounded hover:bg-green-600"
-                    >
-                        Lưu Thông Tin
-                    </button>
+                {isChangingPassword ? (
+                    <>
+                        <input
+                            type="password"
+                            name="currentPassword"
+                            placeholder="Mật Khẩu Hiện Tại"
+                            value={passwordForm.currentPassword}
+                            onChange={handlePasswordChange}
+                            className="p-2 mb-2 w-full border border-gray-300 rounded"
+                        />
+                        <input
+                            type="password"
+                            name="newPassword"
+                            placeholder="Mật Khẩu Mới"
+                            value={passwordForm.newPassword}
+                            onChange={handlePasswordChange}
+                            className="p-2 mb-2 w-full border border-gray-300 rounded"
+                        />
+                        <input
+                            type="password"
+                            name="confirmNewPassword"
+                            placeholder="Xác Nhận Mật Khẩu Mới"
+                            value={passwordForm.confirmNewPassword}
+                            onChange={handlePasswordChange}
+                            className="p-2 mb-2 w-full border border-gray-300 rounded"
+                        />
+                        {error && <p className="text-red-500 mb-2">{error}</p>} {/* Display error message */}
+                        <button
+                            type="button"
+                            onClick={handleChangePassword}
+                            className="px-6 py-3 bg-green-500 text-white rounded hover:bg-green-600"
+                        >
+                            Lưu Mật Khẩu
+                        </button>
+
+                    </>
                 ) : (
                     <button
                         type="button"
-                        onClick={enableEditing}
+                        onClick={() => setIsChangingPassword(true)}
                         className="px-6 py-3 bg-blue-500 text-white rounded hover:bg-blue-600"
                     >
-                        Sửa Thông Tin
+                        Đổi Mật Khẩu
                     </button>
                 )}
             </form>
-            <button
-                type="button"
-                onClick={goToArticles}
-                className="mt-4 px-6 py-3 bg-gray-500 text-white rounded hover:bg-gray-600"
-            >
-                Về Trang Báo
-            </button>
         </div>
     );
 }

@@ -8,36 +8,47 @@ export default function AddNews() {
         category: "",
         description: "",
     });
-    const [error, setError] = useState(""); // Biến lưu thông báo lỗi
+    const [error, setError] = useState(""); // Error message state
     const router = useRouter();
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setNewArticle((prev) => ({ ...prev, [name]: value }));
-        setError(""); // Xóa thông báo lỗi khi người dùng nhập
+        setError(""); // Clear error message when user types
+    };
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                setNewArticle((prev) => ({ ...prev, image: event.target.result })); // Save image as base64
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
     const handleAddArticle = () => {
-        // Kiểm tra nếu bất kỳ trường nào để trống
+        // Validate inputs
         if (!newArticle.title || !newArticle.image || !newArticle.category || !newArticle.description) {
             setError("Vui lòng điền đầy đủ thông tin!");
             return;
         }
 
-        const storedArticles = JSON.parse(localStorage.getItem("articles")) || [];
-        const updatedArticles = [
-            ...storedArticles,
+        const storedPendingArticles = JSON.parse(localStorage.getItem("pendingArticles")) || [];
+        const updatedPendingArticles = [
+            ...storedPendingArticles,
             {
                 ...newArticle,
-                id: Date.now(),
-                color: "bg-green-500",
-                buttonText: "❤️ Yêu thích",
-                isDefault: false,
+                id: Date.now(), // Unique ID
+                color: "bg-green-500", // Default color
+                buttonText: "❤️ Yêu thích", // Default button text
+                isDefault: false, // Mark as user-added
             },
         ];
-        localStorage.setItem("articles", JSON.stringify(updatedArticles));
-        alert("Bài báo mới đã được thêm!");
-        router.push("/bai-bao");
+        localStorage.setItem("pendingArticles", JSON.stringify(updatedPendingArticles));
+        alert("Bài báo mới đã được gửi chờ duyệt!");
+        router.push("/wait"); // Redirect to the wait page
     };
 
     return (
@@ -56,16 +67,7 @@ export default function AddNews() {
                     type="file"
                     name="image"
                     accept="image/*"
-                    onChange={(e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                            const reader = new FileReader();
-                            reader.onload = (event) => {
-                                setNewArticle({ ...newArticle, image: event.target.result }); // Lưu nội dung hình ảnh dưới dạng base64
-                            };
-                            reader.readAsDataURL(file);
-                        }
-                    }}
+                    onChange={handleImageChange}
                     className="p-2 mb-2 w-full border border-gray-300 rounded"
                 />
                 <input
@@ -83,12 +85,12 @@ export default function AddNews() {
                     onChange={handleInputChange}
                     className="p-2 mb-2 w-full border border-gray-300 rounded"
                 />
-                {error && <p className="text-red-500 mb-2">{error}</p>} {/* Hiển thị thông báo lỗi */}
+                {error && <p className="text-red-500 mb-2">{error}</p>} {/* Display error message */}
                 <button
                     type="button"
                     onClick={handleAddArticle}
                     className="px-6 py-3 bg-green-500 text-white rounded hover:bg-green-600"
-                    style={{ width: '3.5%' }}
+                    style={{ width: '7%' }}
                 >
                     Thêm
                 </button>
