@@ -12,28 +12,63 @@ const useAuthStore = create((set) => ({
         }
 
         try {
-            const response = await axiosInstance.get('/v1/auth/me', {
+            const response = await axiosInstance.get('/users/profile', {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
             });
             
-            if (response.result) {
-                set({ isAuthenticated: true, user: response.data });
+            if (response.data.success) {
+                set({ isAuthenticated: true, user: response.data.data });
                 return true;
             }
             return false;
         } catch (error) {
             localStorage.removeItem('accessToken');
-            localStorage.removeItem('refreshToken');
             set({ isAuthenticated: false, user: null });
             return false;
         }
     },
     logout: () => {
         localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
         set({ isAuthenticated: false, user: null });
+    },
+    updateProfile: async (userData) => {
+        try {
+            const token = localStorage.getItem('accessToken');
+            const response = await axiosInstance.put(`/users/${userData._id}`, userData, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            
+            if (response.data.success) {
+                set((state) => ({ 
+                    user: { ...state.user, ...response.data.data }
+                }));
+                return true;
+            }
+            return false;
+        } catch (error) {
+            return false;
+        }
+    },
+    changePassword: async (oldPassword, newPassword) => {
+        try {
+            const token = localStorage.getItem('accessToken');
+            const response = await axiosInstance.post('/users/change-password', 
+                { oldPassword, newPassword },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+            
+            return response.data.success;
+        } catch (error) {
+            return false;
+        }
     }
 }));
 

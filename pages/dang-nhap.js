@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import MasterLayout from '@/components/layouts/MasterLayout';
-import { FcGoogle } from 'react-icons/fc';
 import axiosInstance from '@/configs/api';
 import { useRouter } from 'next/router';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import useAuthStore from '@/store/useAuthStore';
 
 export default function Login() {
     const router = useRouter();
+    const checkAuth = useAuthStore(state => state.checkAuth);
     const [formData, setFormData] = useState({
         email: '',
         password: ''
@@ -23,29 +24,29 @@ export default function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axiosInstance.post('/v1/auth/login', formData);
-            if (response.result && response.data.accessToken) {
-                localStorage.setItem('accessToken', response.data.accessToken);
-                localStorage.setItem('refreshToken', response.data.refreshToken);
+            const response = await axiosInstance.post('/users/login', formData);
+            if (response.data.success) {
+                localStorage.setItem('accessToken', response.data.data.token);
+                await checkAuth();
                 router.push('/');
             }
         } catch (err) {
-            setError(err.message);
+            setError(err.response?.data?.message || 'An error occurred during login');
         }
     };
 
     const handleGoogleSuccess = async (credentialResponse) => {
         try {
-            const response = await axiosInstance.post('/v1/auth/gg-login', {
+            const response = await axiosInstance.post('/users/google-login', {
                 idToken: credentialResponse.credential
             });
-            if (response.result && response.data.accessToken) {
-                localStorage.setItem('accessToken', response.data.accessToken);
-                localStorage.setItem('refreshToken', response.data.refreshToken);
+            if (response.data.success) {
+                localStorage.setItem('accessToken', response.data.data.token);
+                await checkAuth();
                 router.push('/');
             }
         } catch (err) {
-            setError(err.message);
+            setError(err.response?.data?.message || 'Google sign in failed');
         }
     };
 
